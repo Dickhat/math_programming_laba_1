@@ -26,6 +26,11 @@ int main()
 {
     setlocale(LC_ALL, "RUSSIAN");
 
+    //Вектор направлений
+    double p1;
+    double p2;
+    double p3;
+
     //Итерация
     int iteration = 0;
 
@@ -67,26 +72,70 @@ int main()
     //while Проверка, что необходимая точность не получена
     while (norm_grad > eps)
     {
+        //Предыдущие координаты
         predX1 = x1;
         predX2 = x2;
         predX3 = x3;
-        predFun = function(x1, x2, x3);
 
-        x1 = predX1 + step * (-gradient.dx1)/ norm_grad;
-        x2 = predX2 + step * (-gradient.dx2) / norm_grad;
-        x3 = predX3 + step * (-gradient.dx3) / norm_grad;
+        //Вектор направлений
+        p1 = -gradient.dx1;
+        p2 = -gradient.dx2;
+        p3 = -gradient.dx3;
 
+        //Вычисление шага для x1
+        if (predFun <= function(x1, x2, x3))
+        {
+            step = step_compute(x1, predX2, predX3, gradient, step);
+        }
+
+        x1 = predX1 + step * p1/norm_grad;
+
+        //Пересчет градиентов
+        gradient.dx1 = dx1(x1, predX2, predX3);
+        gradient.dx2 = dx2(x1, predX2, predX3);
+        gradient.dx3 = dx3(x1, predX2, predX3);
+
+        norm_grad = sqrt(pow(gradient.dx1, 2) + pow(gradient.dx2, 2) + pow(gradient.dx3, 2));
+
+        //Пересчет вектора направлений
+        p1 = -gradient.dx1;
+        p2 = -gradient.dx2;
+        p3 = -gradient.dx3;
+
+        //Вычисление шага для x2
+        if (predFun <= function(x1, x2, x3))
+        {
+            step = step_compute(x1, x2, predX3, gradient, step);
+        }
+
+        x2 = predX2 + step * p2/ norm_grad;
+
+        //Пересчет градиентов
+        gradient.dx1 = dx1(x1, x2, predX3);
+        gradient.dx2 = dx2(x1, x2, predX3);
+        gradient.dx3 = dx3(x1, x2, predX3);
+
+        norm_grad = sqrt(pow(gradient.dx1, 2) + pow(gradient.dx2, 2) + pow(gradient.dx3, 2));
+
+        //Пересчет вектора направлений
+        p1 = -gradient.dx1;
+        p2 = -gradient.dx2;
+        p3 = -gradient.dx3;
+
+        //Вычисление шага для x3
+        if (predFun <= function(x1, x2, x3))
+        {
+            step = step_compute(x1, x2, x3, gradient, step);
+        }
+
+        x3 = predX3 + step * p3/ norm_grad;
+
+        //Пересчет градиентов
         gradient.dx1 = dx1(x1, x2, x3);
         gradient.dx2 = dx2(x1, x2, x3);
         gradient.dx3 = dx3(x1, x2, x3);
 
         norm_grad = sqrt(pow(gradient.dx1, 2) + pow(gradient.dx2, 2) + pow(gradient.dx3, 2));
-
-        //if Проверка на дробление шага
-        if (predFun <= function(x1, x2, x3))
-        {
-           step = step_compute(x1, x2, x3, gradient, step);
-        }
 
         cout << " " << setw(10) << left << iteration << setw(12) << left << x1 << setw(12) << left << x2 << setw(12) << left << x3
              << setw(16) << left<< norm_grad << setw(12) << left << function(x1, x2, x3) << setw(12) << left << step << endl;
