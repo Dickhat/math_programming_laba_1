@@ -31,29 +31,30 @@ int main()
     double p2;
     double p3;
 
+    //Предыдущий вектор направлений
+    double pred_p1 = 0;
+    double pred_p2 = 0;
+    double pred_p3 = 0;
+
+    //Точность вычислений
+    double eps = 0.001;
+
     //Итерация
     int iteration = 0;
 
     //Шаг
-    double step = 0.5;
+    double step = 0.1;
 
     //Стационарная точка
     double x1 = -0.27;
     double x2 = -1.618;
     double x3 = 0.404;
 
-    //Предыдущие координаты
-    double predX1 = x1;
-    double predX2 = x2;
-    double predX3 = x3;
-
     //Предыдущее значение функции
     double predFun = function(x1, x2, x3);
 
-    //Точность вычислений
-    double eps = 0.001;   
-
     grad gradient = {0, 0, 0};
+    double pred_gradient;
 
     //Вычисление частных производных для градиента
     gradient.dx1 = dx1(x1, x2, x3);
@@ -66,74 +67,36 @@ int main()
     //Нормированный градиент
     double norm_grad = sqrt(pow(gradient.dx1, 2) + pow(gradient.dx2, 2) + pow(gradient.dx3, 2));
 
-    //Вычисление начального шага
-    step = step_compute(x1, x2, x3, gradient, step);
+    pred_gradient = norm_grad;
+    p1 = -gradient.dx1 / norm_grad;
+    p2 = -gradient.dx2 / norm_grad;
+    p3 = -gradient.dx3 / norm_grad;
 
     //while Проверка, что необходимая точность не получена
     while (norm_grad > eps)
     {
-        //Предыдущие координаты
-        predX1 = x1;
-        predX2 = x2;
-        predX3 = x3;
-
         //Вектор направлений
-        p1 = -gradient.dx1;
-        p2 = -gradient.dx2;
-        p3 = -gradient.dx3;
+        p1 = -gradient.dx1 + pow(norm_grad, 2) / pow(pred_gradient, 2) * pred_p1;
+        p2 = -gradient.dx2 + pow(norm_grad, 2) / pow(pred_gradient, 2) * pred_p2;
+        p3 = -gradient.dx3 + pow(norm_grad, 2) / pow(pred_gradient, 2) * pred_p3;
 
-        //Вычисление шага для x1
-        if (predFun <= function(x1, x2, x3))
-        {
-            step = step_compute(x1, predX2, predX3, gradient, step);
-        }
+        //Предыдущий вектор направлений
+        pred_p1 = p1;
+        pred_p2 = p2;
+        pred_p3 = p3;
 
-        x1 = predX1 + step * p1/norm_grad;
+        pred_gradient = norm_grad;
 
-        //Пересчет градиентов
-        gradient.dx1 = dx1(x1, predX2, predX3);
-        gradient.dx2 = dx2(x1, predX2, predX3);
-        gradient.dx3 = dx3(x1, predX2, predX3);
-
-        norm_grad = sqrt(pow(gradient.dx1, 2) + pow(gradient.dx2, 2) + pow(gradient.dx3, 2));
-
-        //Пересчет вектора направлений
-        p1 = -gradient.dx1;
-        p2 = -gradient.dx2;
-        p3 = -gradient.dx3;
-
-        //Вычисление шага для x2
-        if (predFun <= function(x1, x2, x3))
-        {
-            step = step_compute(x1, x2, predX3, gradient, step);
-        }
-
-        x2 = predX2 + step * p2/ norm_grad;
-
-        //Пересчет градиентов
-        gradient.dx1 = dx1(x1, x2, predX3);
-        gradient.dx2 = dx2(x1, x2, predX3);
-        gradient.dx3 = dx3(x1, x2, predX3);
-
-        norm_grad = sqrt(pow(gradient.dx1, 2) + pow(gradient.dx2, 2) + pow(gradient.dx3, 2));
-
-        //Пересчет вектора направлений
-        p1 = -gradient.dx1;
-        p2 = -gradient.dx2;
-        p3 = -gradient.dx3;
-
-        //Вычисление шага для x3
-        if (predFun <= function(x1, x2, x3))
-        {
+        if (predFun < function(x1, x2, x3))
             step = step_compute(x1, x2, x3, gradient, step);
-        }
 
-        x3 = predX3 + step * p3/ norm_grad;
+        x1 = x1 + step * p1;
+        x2 = x2 + step * p2;
+        x3 = x3 + step * p3;
 
-        //Пересчет градиентов
         gradient.dx1 = dx1(x1, x2, x3);
-        gradient.dx2 = dx2(x1, x2, x3);
-        gradient.dx3 = dx3(x1, x2, x3);
+        gradient.dx2 = dx1(x1, x2, x3);
+        gradient.dx3 = dx1(x1, x2, x3);
 
         norm_grad = sqrt(pow(gradient.dx1, 2) + pow(gradient.dx2, 2) + pow(gradient.dx3, 2));
 
